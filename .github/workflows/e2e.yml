@@ -1,0 +1,56 @@
+name: e2e CI
+
+on:
+  pull_request_target:
+    types: [labeled]
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  install:
+    name: E2E - ${{ matrix.os }} - Install - Node ${{ matrix.node-version }}
+    concurrency:
+      group: e2e-install-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [22.x]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '${{ github.event.pull_request.merge_commit_sha }}'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Check uncommitted changes
+        if: ${{ always() }}
+        run: git diff HEAD --exit-code
+  e2e-test:
+    name: E2E - ${{ matrix.os }} - e2e Tests - Node ${{ matrix.node-version }}
+    if: github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe to test')
+    concurrency:
+      group: e2e-test-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
+      cancel-in-progress: true
+    needs: [install]
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [22.x]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '${{ github.event.pull_request.merge_commit_sha }}'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Execute tests
+        run: |
+          echo "--- e2e test run ---"
