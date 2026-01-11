@@ -10,7 +10,7 @@ on:
 jobs:
   verification:
     uses: ./.github/workflows/ci.yml
-
+    secrets: inherit
   install:
     name: E2E - ${{ matrix.os }} - Install - Node ${{ matrix.node-version }}
     needs: [verification]
