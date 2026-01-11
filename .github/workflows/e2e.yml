@@ -54,3 +54,4 @@ jobs:
       - name: Execute tests
         run: |
           echo "--- e2e test run ---"
+          echo "FOO: ${{ secrets.FOO }}"
