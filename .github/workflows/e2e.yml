@@ -2,7 +2,7 @@ name: e2e CI
 
 on:
   pull_request_target:
-    types: [labeled, synchronize]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - 'main'
