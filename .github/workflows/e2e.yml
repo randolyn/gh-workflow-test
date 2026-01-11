@@ -8,8 +8,12 @@ on:
       - 'main'
 
 jobs:
+  verification:
+    uses: ./.github/workflows/ci.yml
+
   install:
     name: E2E - ${{ matrix.os }} - Install - Node ${{ matrix.node-version }}
+    needs: [verification]
     concurrency:
       group: e2e-install-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
       cancel-in-progress: true
@@ -32,11 +36,10 @@ jobs:
         run: git diff HEAD --exit-code
   e2e-test:
     name: E2E - ${{ matrix.os }} - e2e Tests - Node ${{ matrix.node-version }}
-    if: github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe to test')
+    needs: [install, verification]
     concurrency:
       group: e2e-test-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
       cancel-in-progress: true
-    needs: [install]
     strategy:
       matrix:
         os: [ubuntu-latest]
