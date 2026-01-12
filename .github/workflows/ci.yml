@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - 'main'
-  workflow_call:
+
 jobs:
   install:
     name: ${{ matrix.os }} - Install - Node ${{ matrix.node-version }}
