@@ -6,14 +6,15 @@ on:
   push:
     branches:
       - 'main'
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
 
 jobs:
-  verification:
-    uses: ./.github/workflows/ci.yml
-    secrets: inherit
   install:
     name: E2E - ${{ matrix.os }} - Install - Node ${{ matrix.node-version }}
-    needs: [verification]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     concurrency:
       group: e2e-install-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
       cancel-in-progress: true
@@ -36,7 +37,7 @@ jobs:
         run: git diff HEAD --exit-code
   e2e-test:
     name: E2E - ${{ matrix.os }} - e2e Tests - Node ${{ matrix.node-version }}
-    needs: [install, verification]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     concurrency:
       group: e2e-test-${{ github.event_name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.node-version }}
       cancel-in-progress: true
